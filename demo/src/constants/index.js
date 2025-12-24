@@ -1,11 +1,17 @@
-// src/constants.js
+// demo/src/constants/index.js
 
-// 💡 1. Định nghĩa Base URL cho Backend Spring Boot
+// ✅ Base URL khớp với BE (context-path: /identity)
 export const BACKEND_BASE_URL = "http://localhost:8080/identity";
 
-// 💡 2. Định nghĩa các nguồn API mà Frontend cho phép chọn
+// ✅ API Sources - Chỉ dùng "Dự báo thời tiết" (tenChucNang trong DB)
 export const API_SOURCES = {
-  SPRING_BOOT_OPENMETEO: "OpenMeteo", // Tên tham số 'source' được gửi lên BE
+  SPRING_BOOT_OPENMETEO: "Dự báo thời tiết", // Khớp với tenChucNang trong NguonDuLieu
 };
 
-// ... (Các hằng số khác nếu có)
+// ✅ Weather Models (maModelApi từ MoHinhDuBao)
+export const WEATHER_MODELS = {
+  BEST_MATCH: "best_match",
+  ICON_SEAMLESS: "icon_seamless",
+  GFS_SEAMLESS: "gfs_seamless",
+  METEOFRANCE_SEAMLESS: "meteofrance_seamless",
+};
