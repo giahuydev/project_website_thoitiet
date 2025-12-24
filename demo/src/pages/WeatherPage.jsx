@@ -4,7 +4,7 @@ import WeatherChart from "../components/WeatherChart";
 import MapSelector from "../components/MapSelector";
 import PremiumBanner from "../components/PremiumBanner";
 import useWeatherApi from "../hooks/useWeatherApi";
-import { Bookmark, MapPin, Navigation, TrendingUp } from "lucide-react";
+import { Bookmark, Navigation, TrendingUp } from "lucide-react";
 
 export default function WeatherPage({ apiSource }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -23,12 +23,13 @@ export default function WeatherPage({ apiSource }) {
   };
 
   const forecast7Day = daily?.list?.slice(0, 7) || [];
-  const forecastHourly = hourly?.slice(0, 12) || [];
+  const forecastHourly = hourly?.slice(0, 24) || []; // Lấy 24h để khớp với biểu đồ
   const weatherData = current || {};
   const currentTemp = Math.round(weatherData.main?.temp) || "-";
   const locationName = weatherData.name || currentCity;
   const description = weatherData.weather?.[0]?.description || "Đang tải...";
 
+  // Loading State
   if (loading && !current) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -44,6 +45,7 @@ export default function WeatherPage({ apiSource }) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Error Message */}
       {error && (
         <div className="mb-6">
           <div
@@ -52,8 +54,7 @@ export default function WeatherPage({ apiSource }) {
           >
             <strong className="font-bold">⚠️ Lỗi Kết Nối Dữ Liệu!</strong>
             <p className="block sm:inline ml-2">
-              Không thể tải dữ liệu mới: {error}. Dữ liệu đang hiển thị là giá
-              trị mặc định.
+              Không thể tải dữ liệu mới: {error}.
             </p>
           </div>
         </div>
@@ -62,7 +63,7 @@ export default function WeatherPage({ apiSource }) {
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Main Content - Left 2 columns */}
         <div className="lg:col-span-2 space-y-8">
-          {/* SEARCH BOX */}
+          {/* 1. SEARCH BOX */}
           <div>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl">
@@ -79,12 +80,12 @@ export default function WeatherPage({ apiSource }) {
             </div>
           </div>
 
-          {/* WEATHER CARD */}
+          {/* 2. WEATHER CARD */}
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-8 text-white shadow-lg hover:shadow-xl transition-shadow">
             <div className="flex items-start justify-between mb-6">
               <div>
                 <h2 className="text-2xl font-bold mb-1">{locationName}</h2>
-                <p className="text-blue-100">{description}</p>
+                <p className="text-blue-100 capitalize">{description}</p>
               </div>
               <span className="text-5xl">
                 {weatherData.weather?.[0]?.icon ? (
@@ -155,7 +156,7 @@ export default function WeatherPage({ apiSource }) {
             </div>
           </div>
 
-          {/* MAP */}
+          {/* 3. MAP */}
           <div
             className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700"
             style={{ height: "400px" }}
@@ -163,7 +164,7 @@ export default function WeatherPage({ apiSource }) {
             <MapSelector position={location} />
           </div>
 
-          {/* HOURLY FORECAST */}
+          {/* 4. HOURLY FORECAST LIST */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
               ⏰ Dự báo {forecastHourly.length} giờ tới
@@ -175,7 +176,9 @@ export default function WeatherPage({ apiSource }) {
                   const temp = Math.round(hour.main?.temp) || "-";
                   const descriptionHourly = hour.weather?.[0]?.description || "N/A";
                   const icon = hour.weather?.[0]?.icon || "04d";
-                  const rainVolume = hour.rain?.["1h"];
+                  
+                  // [QUAN TRỌNG] Lấy biến rain trực tiếp (đã xử lý ở Hook)
+                  const rainVolume = hour.rain; 
 
                   return (
                     <div
@@ -195,8 +198,10 @@ export default function WeatherPage({ apiSource }) {
                       <p className="text-lg font-bold text-gray-900 dark:text-white">
                         {temp}°
                       </p>
-                      {rainVolume && (
-                        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 text-xs text-blue-500 font-semibold bg-blue-100 dark:bg-blue-900 rounded-full px-1.5">
+                      
+                      {/* Hiển thị lượng mưa nếu > 0 */}
+                      {rainVolume > 0 && (
+                        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 text-xs text-blue-500 font-bold bg-blue-100 dark:bg-blue-900/50 rounded-full px-2 py-0.5 whitespace-nowrap">
                           {rainVolume}mm
                         </div>
                       )}
@@ -207,15 +212,16 @@ export default function WeatherPage({ apiSource }) {
             </div>
           </div>
 
-          {/* CHART */}
+          {/* 5. CHART */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
               📊 Biểu đồ thời tiết chi tiết
             </h3>
+            {/* Truyền forecastHourly vào chart */}
             <WeatherChart data={forecastHourly} />
           </div>
 
-          {/* 7-DAY FORECAST */}
+          {/* 6. 7-DAY FORECAST */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
               📅 Dự báo {forecast7Day.length} ngày tới
